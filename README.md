@@ -34,8 +34,8 @@ Definitions are _DYNAMICLY SCOPED_ and shared between files.
 ### Code Snippet Examples
 
 ```
-! factorial ~| ?0 _ 1 * n factorial - _ 1 / defines a factorial method /
-! pi 314 ! circle * * pi _ _ circle 5 / calculates area of a circle with size 5, times 100. /
+! factorial ~| ?0 _ 1 * n factorial - _ 1 # defines a factorial method #
+! pi 314 ! circle * * pi _ _ circle 5 # calculates area of a circle with size 5, times 100. #
 ```
 
 ### Grammar
