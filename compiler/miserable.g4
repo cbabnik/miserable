@@ -1,9 +1,5 @@
 lexer grammar miserable;
 
-@header {
-package compiler;
-}
-
 // Token Classes
 // -------------
 
