@@ -1,4 +1,30 @@
-lexer grammar miserable;
+grammar miserable;
+
+
+// Production Rules
+// ----------------
+
+expr
+: call
+| definition expr
+| Number
+| Parameter
+| ParentParameter
+;
+
+exprs
+: expr exprs
+|
+;
+
+call
+: Label exprs SemiColon
+;
+
+definition
+: Exclamation Label expr
+;
+
 
 // Token Classes
 // -------------
