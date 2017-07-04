@@ -4,6 +4,10 @@ grammar miserable;
 // Production Rules
 // ----------------
 
+prog
+: expr
+;
+
 expr
 : call
 | definition expr
