@@ -20,7 +20,7 @@ if len(sys.argv) < 3:
 fileIn  = sys.argv[1]
 fileOut = sys.argv[2]
 
-expr  = re.compile(r"[0-9]+|_")
+expr  = re.compile(r"[0-9]+|_|_\^")
 func  = re.compile(r"\+\+|\~\&\&|\$|[a-zA-Z]+")
 define= re.compile(r"\!")
 
@@ -112,42 +112,49 @@ def populate_func_table(code):
         token = tokens[idx];
         if token=="!":
             idx += 1
-            current_define = tokens[idx]
-            count, idx = get_param_count(tokens, idx)
-            func_table[current_define] = count
+            parent_params, idx = get_param_count(tokens, idx)
         idx+=1
 
 def get_param_count(tokens, idx):
     stack = [1]
     current_define = tokens[idx];
     params = 0
+    parent_params = 0
 
     idx += 1
     while idx < len(tokens):
         token = tokens[idx]
         if func.fullmatch(token):
             if token in func_table:
-                stack.append(func_table[token])
+                if func_table[token] == 0:
+                    stack, semis = remove_one(stack)
+                    if stack == []:
+                        func_table[current_define] = params
+                        return parent_params, idx
+                else:
+                    stack.append(func_table[token])
             else:
-                print(func_table)
                 print("function undefined: %s" % token)
                 exit(1)
         elif expr.fullmatch(token):
             if token == "_":
                 params+=1
+            elif token == "_^":
+                parent_params += 1
             stack, semis = remove_one(stack)
             if stack == []:
-                return params, idx
+                func_table[current_define] = params
+                return parent_params, idx
         elif define.fullmatch(token):
             idx += 1
-            current_define = tokens[idx]
-            count, idx = get_param_count(tokens, idx)
-            func_table[current_define] = count
+            parent_count, idx = get_param_count(tokens, idx)
+            params += parent_count
         else:
             print("unrecognized token during populate_func_table: %s" % token)
             exit(1)
         idx += 1
-    return params, idx
+    func_table[current_define] = params
+    return parent_params, idx
 
 # the stack represents how many expressions are needed for a function call to finish.
 # each time a function call finishes, the parent removes one expression needed aswell
@@ -157,9 +164,9 @@ def remove_one(stack):
     # or when the file reaches the end
     if len(stack) == 0:
         return (stack, [])
+    if stack == [1]:
+        return ([], [";"])
     val = stack.pop()
-    if len(stack) == 0:
-        return (stack, [])
     # remove one from top level, if that would make the count 0, add ';' and recurse
     if (val == 1):
         stack, semis = remove_one(stack)
@@ -179,7 +186,7 @@ def add_semis(code):
     tokens = re.split(r"[ \t\r\n]+", code)
     tokens = [t for t in tokens if t != '']
 
-    stack = [1]
+    stack = []
     idx = 0
     while idx < len(tokens):
         token = tokens[idx]
@@ -187,7 +194,15 @@ def add_semis(code):
             # function label
             if token in func_table:
                 # function in table
-                stack.append(func_table[token])
+                if func_table[token] == 0:
+                    stack.append(1)
+                    # expression
+                    stack, semis = remove_one(stack)
+                    if len(semis) > 0:
+                        tokens = tokens[:idx+1] + semis + tokens[idx+1:]
+                        idx += len(semis)
+                else:
+                    stack.append(func_table[token])
             else:
                 # function not in table, fatal crash
                 print("function undefined: %s" % token)

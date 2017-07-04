@@ -15,6 +15,9 @@ Exclamation
 Parameter
 : '_'
 ;
+ParentParameter
+: '_^'
+;
 Number
 : [0-9]+
 ;
