@@ -10,7 +10,7 @@ PROD_GRAMMAR= production/compiler/miserable.java
 COMP_FLDR   = production/compiler/
 RETURN      = ../../
 
-PRECOMPILER       = precompiler/precompiler.py
+PRECOMPILER       = utilities/precompiler.py
 SOURCE_FLDR       = src/
 PRECOMPILED_FLDR  = production/precompiled/
 PRECOMPILEDS      := $(patsubst src/%.mis,$(PRECOMPILED_FLDR)%,$(wildcard src/*.mis))
