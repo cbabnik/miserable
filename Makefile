@@ -5,6 +5,7 @@ GRUN    = java org.antlr.v4.gui.TestRig
 
 GRAMMAR     = compiler/miserable.g4
 PROD_GRAMMAR= production/compiler/miserable.java
+PRECOMPILER = precompiler/precompiler.py
 COMP_FLDR   = production/compiler/
 RETURN      = ../../
 
@@ -47,6 +48,9 @@ $(PROD_GRAMMAR):
 $(COMP_FLDR)*.class:
 	$(JC) $(JFLAGS) $(COMP_FLDR)*.java -d $(COMP_FLDR)
 
+# Precompilation
+$(PRECOMPILED_FLDR)%: $(SOURCE_FLDR)%.mis
+	python3 $(PRECOMPILER) $^ $@
 # Tokenize
 $(TOKENS_FLDR)%: $(PRECOMPILED_FLDR)%
 	cd $(COMP_FLDR); $(GRUN) $(LEXER) tokens -tokens $(RETURN)$^ > $(RETURN)$@
