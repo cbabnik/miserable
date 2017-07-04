@@ -3,14 +3,17 @@ JFLAGS  =
 ANLTR   = java org.antlr.v4.Tool
 GRUN    = java org.antlr.v4.gui.TestRig
 
-GRAMMAR   = compiler/miserable.g4
-COMP_FLDR = production/compiler/
-RETURN    = ../../
+GRAMMAR     = compiler/miserable.g4
+PROD_GRAMMAR= production/compiler/miserable.java
+COMP_FLDR   = production/compiler/
+RETURN      = ../../
 
 objects := $(patsubst %.mis,../../%,$(wildcard *.c))
 
 LEXER             = miserable
 SOURCE_FLDR       = src/
+PRECOMPILED_FLDR  = production/precompiled/
+PRECOMPILEDS      := $(patsubst src/%.mis,$(PRECOMPILED_FLDR)%,$(wildcard src/*.mis))
 TOKENS_FLDR       = production/tokens/
 TOKENS            := $(patsubst src/%.mis,$(TOKENS_FLDR)%,$(wildcard src/*.mis))
 PST_FLDR          = production/psts/
@@ -21,21 +24,32 @@ TARGETS           := $(patsubst src/%.mis,target/%,$(wildcard src/*.mis))
 default: all
 overwrite: clean default
 
-all: init compiler $(TOKENS)
-compiler: $(COMP_FLDR)*.class
+all: init tokens
 
-init:
+precompile: $(PRECOMPILEDS)
+
+init:       $(PROD_GRAMMAR)
+compiler:   $(COMP_FLDR)*.class
+
+tokens:     precompile compiler $(TOKENS)
+psts:       compiler $(PSTS)
+compile:    compiler $(TARGETS)
+
+
+$(PROD_GRAMMAR):
 	$(ANLTR) -o production $(GRAMMAR)
-	mkdir $(TOKENS_FLDR)
-	mkdir $(PST_FLDR)
+	mkdir -p $(TARGET_FLDR)
+	mkdir -p $(PRECOMPILED_FLDR)
+	mkdir -p $(TOKENS_FLDR)
+	mkdir -p $(PST_FLDR)
 
 # Compiler
 $(COMP_FLDR)*.class:
 	$(JC) $(JFLAGS) $(COMP_FLDR)*.java -d $(COMP_FLDR)
 
 # Tokenize
-$(TOKENS_FLDR)%: $(SOURCE_FLDR)%.mis
-	cd $(COMP_FLDR); $(GRUN) $(LEXER) tokens $(RETURN)$^ > $(RETURN)$@
+$(TOKENS_FLDR)%: $(PRECOMPILED_FLDR)%
+	cd $(COMP_FLDR); $(GRUN) $(LEXER) tokens -tokens $(RETURN)$^ > $(RETURN)$@
 
 clean:
 	rm -rf production/*
